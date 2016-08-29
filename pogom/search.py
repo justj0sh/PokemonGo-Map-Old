@@ -317,7 +317,7 @@ def get_hex_location_list(args, current_location):
             log.warning('No spawnpoints found in the specified area! (Did you forget to run a normal scan in this area first?)')
 
         def any_spawnpoints_in_range(coords):
-            return any(geopy.distance.distance(coords, x).meters <= 70 for x in spawnpoints)
+            return any(geopy.distance.great_circle(coords, x).meters <= 70 for x in spawnpoints)
 
         locations = [coords for coords in locations if any_spawnpoints_in_range(coords)]
 
