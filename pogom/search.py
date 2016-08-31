@@ -35,6 +35,7 @@ from pgoapi.utilities import f2i
 from pgoapi import utilities as util
 from pgoapi.exceptions import AuthException
 
+from . import config
 from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms
 from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
@@ -352,18 +353,18 @@ def get_hex_location_list(args, current_location):
         step_distance = 0.070
 
     # update our list of coords
-    locations = generate_location_steps(current_location, args.step_limit, step_distance)
+    locations = generate_location_steps(current_location, config['STEP_LIMIT'], step_distance)
 
     # In hex "spawns only" mode, filter out scan locations with no history of pokemons
-    if args.spawnpoints_only and not args.no_pokemon:
-        n, e, s, w = hex_bounds(current_location, args.step_limit)
+    if config['SPAWNPOINTS_ONLY'] and not args.no_pokemon:
+        n, e, s, w = hex_bounds(current_location, config['STEP_LIMIT'])
         spawnpoints = set((d['latitude'], d['longitude']) for d in Pokemon.get_spawnpoints(s, w, n, e))
 
         if len(spawnpoints) == 0:
             log.warning('No spawnpoints found in the specified area! (Did you forget to run a normal scan in this area first?)')
 
         def any_spawnpoints_in_range(coords):
-            return any(geopy.distance.distance(coords, x).meters <= 70 for x in spawnpoints)
+            return any(geopy.distance.great_circle(coords, x).meters <= 70 for x in spawnpoints)
 
         locations = [coords for coords in locations if any_spawnpoints_in_range(coords)]
 
@@ -394,7 +395,7 @@ def get_sps_location_list(args, current_location, sps_scan_current):
     # No locations yet? Try the database!
     if not len(locations):
         log.debug('Loading spawn points from database')
-        locations = Pokemon.get_spawnpoints_in_hex(current_location, args.step_limit)
+        locations = Pokemon.get_spawnpoints_in_hex(current_location, config['STEP_LIMIT'])
 
     # Well shit...
     if not len(locations):

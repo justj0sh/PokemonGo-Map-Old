@@ -129,6 +129,16 @@
               <input id="next-location" type="text" name="next-location" placeholder="Change your location">
               </label>
             </div>
+            <div class="form-control switch-container" style="display:{{is_fixed}}">
+              <h3>Scan only spawnpoints</h3>
+              <div class="onoffswitch">
+                <input id="spawnpoints-only-switch" type="checkbox" name="spawnpoints-only-switch" class="onoffswitch-checkbox" checked/>
+                <label class="onoffswitch-label" for="spawnpoints-only-switch">
+                <span class="switch-label" data-on="On" data-off="Off"></span>
+                <span class="switch-handle"></span>
+                </label>
+              </div>
+            </div>
             <div class="form-control switch-container" style="display:{{is_fixed}}" >
               <h3>Lock marker</h3>
               <div class="onoffswitch">
@@ -168,6 +178,12 @@
                 <span class="switch-handle"></span>
                 </label>
               </div>
+            </div>
+            <div class="form-control switch-container" style="display:{{step_control}}" >
+              <label for="step-limit">
+              <h3>Search step limit</h3>
+              <input id="step-limit" type="number" min="1" name="step-limit">
+              </label>
             </div>
           </div>
 
