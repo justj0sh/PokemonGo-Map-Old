@@ -38,7 +38,7 @@ from pgoapi.exceptions import AuthException
 
 from . import config
 from .models import parse_map, Pokemon, hex_bounds, GymDetails, parse_gyms, MainWorker, WorkerStatus
-from .transform import generate_location_steps
+from .transform import generate_location_steps, get_speed_sleep
 from .fakePogoApi import FakePogoApi
 from .utils import now
 
@@ -481,6 +481,8 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
     stagger_thread(args, account)
 
     log.debug('Search worker thread starting')
+    first_run = True
+    last_scan_time = int(round(time.time() * 1000))
 
     # The forever loop for the thread
     while True:
@@ -524,6 +526,9 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                 status['message'] = 'Waiting for item from queue'
                 step, step_location, appears, leaves = search_items_queue.get()
 
+                if first_run:
+                    last_location = step_location
+
                 # too soon?
                 if appears and now() < appears + 10:  # adding a 10 second grace period
                     first_loop = True
@@ -551,6 +556,14 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                     log.info(status['message'])
                     # No sleep here; we've not done anything worth sleeping for. Plus we clearly need to catch up!
                     continue
+
+                # check for speed limit if applicable
+                speed_sleep = get_speed_sleep(args.speed_limit, last_location, step_location, last_scan_time, int(round(time.time() * 1000)))
+                if speed_sleep > 0:
+                    speed_sleep = args.max_speed_limit_sleep if speed_sleep > args.max_speed_limit_sleep and args.max_speed_limit_sleep > 0 else speed_sleep
+                    status['message'] = 'Sleeping an additional {} seconds to stay under speed limit'.format(speed_sleep)
+                    log.info("Sleeping an additional %d seconds to stay under speed limit", speed_sleep)
+                    time.sleep(speed_sleep)
 
                 status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
                 log.info(status['message'])
@@ -637,6 +650,10 @@ def search_worker_thread(args, account, search_items_queue, pause_bit, encryptio
                             parse_gyms(args, gym_responses, whq)
 
                 # Always delay the desired amount after "scan" completion
+                if first_run:
+                    first_run = False
+                last_scan_time = int(round(time.time() * 1000))
+                last_location = step_location
                 status['message'] += ', sleeping {}s until {}'.format(args.scan_delay, time.strftime('%H:%M:%S', time.localtime(time.time() + args.scan_delay)))
                 time.sleep(args.scan_delay)
 

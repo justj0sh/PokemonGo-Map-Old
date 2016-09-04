@@ -91,6 +91,7 @@ class Pogom(Flask):
         args = get_args()
         fixed_display = "none" if args.fixed_location else "inline"
         search_display = "inline" if args.search_control else "none"
+        spawnpoints_only_display = "inline" if not args.fixed_location and args.speed_limit > 0 else "none"
 
         return render_template('map.html',
                                lat=self.current_location[0],
@@ -98,7 +99,8 @@ class Pogom(Flask):
                                gmaps_key=config['GMAPS_KEY'],
                                lang=config['LOCALE'],
                                is_fixed=fixed_display,
-                               search_control=search_display
+                               search_control=search_display,
+                               spawnpoints_only=spawnpoints_only_display
                                )
 
     def raw_data(self):
