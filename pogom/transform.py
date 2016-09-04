@@ -146,7 +146,7 @@ def get_speed_sleep(speed_limit, start_location, end_location, start_time, end_t
     time_elapsed = end_time - start_time
 
     if speed_limit > 0 and time_elapsed > 0:
-        speed_limit = speed_limit_in_kmph * 1000.0 / 3600.0  # convert to mps to avoid divide by zero errors
+        speed_limit = speed_limit * 1000.0 / 3600.0  # convert to mps to avoid divide by zero errors
         distance = geopy.distance.distance(start_location, end_location).meters
         speed = distance / (time_elapsed / 1000.0)
     else:
