@@ -32,8 +32,6 @@ class Pogom(Flask):
         self.route("/mobile", methods=['GET'])(self.list_pokemon)
         self.route("/search_control", methods=['GET'])(self.get_search_control)
         self.route("/search_control", methods=['POST'])(self.post_search_control)
-        self.route("/step_limit", methods=['GET'])(self.get_step_limit)
-        self.route("/step_limit", methods=['POST'])(self.post_step_limit)
         self.route("/spawnpoints_only", methods=['GET'])(self.get_spawnpoints_only)
         self.route("/spawnpoints_only", methods=['POST'])(self.post_spawnpoints_only)
         self.route("/stats", methods=['GET'])(self.get_stats)
@@ -67,28 +65,8 @@ class Pogom(Flask):
             return jsonify({'message': 'invalid use of api'})
         return self.get_search_control()
 
-    def get_step_limit(self):
-        return jsonify({'limit': config['STEP_LIMIT']})
-
-    def post_step_limit(self):
-        args = get_args()
-        if args.fixed_location or not args.step_control:
-            return 'Step limit control is disabled', 403
-        if request.args:
-            limit = request.args.get('limit', type=int)
-            if limit and limit > 0:
-                config['STEP_LIMIT'] = limit
-                log.info('Step limit changed to: %s', config['STEP_LIMIT'])
-                # some dirty workaround to restart search thread
-                self.location_queue.put((self.current_location[0], self.current_location[1], 0))
-            else:
-                return jsonify({'message': 'invalid step limit'})
-        else:
-            return jsonify({'message': 'invalid use of api'})
-        return self.get_step_limit()
-
     def get_spawnpoints_only(self):
-        return jsonify({'status': config['SPAWNPOINTS_ONLY']})
+        return jsonify({'status': config['SCHEDULER'] == 'HexSearchSpawnpoint'})
 
     def post_spawnpoints_only(self):
         args = get_args()
@@ -97,14 +75,11 @@ class Pogom(Flask):
         if request.args:
             action = request.args.get('action', 'none')
             if action == 'on':
-                config['SPAWNPOINTS_ONLY'] = True
+                config['SCHEDULER'] = 'HexSearchSpawnpoint'
             elif action == 'off':
-                config['SPAWNPOINTS_ONLY'] = False
+                config['SCHEDULER'] = 'HexSearch'
             else:
                 return jsonify({'message': 'invalid action set'})
-            log.info('Spawnpoints only scan mode switched to: %s', config['SPAWNPOINTS_ONLY'])
-            # some dirty workaround to restart search thread
-            self.location_queue.put((self.current_location[0], self.current_location[1], 0))
         else:
             return jsonify({'message': 'invalid use of api'})
         return self.get_spawnpoints_only()
@@ -113,8 +88,7 @@ class Pogom(Flask):
         args = get_args()
         fixed_display = "none" if args.fixed_location else "inline"
         search_display = "inline" if args.search_control else "none"
-        step_display = "inline" if args.step_control and not args.fixed_location else "none"
-        spawnpoints_only_display = "inline" if not args.fixed_location and args.speed_limit > 0 else "none"
+        spawnpoints_only_display = "inline" if not args.fixed_location and not args.spawnpoint_scanning and args.speed_limit > 0 else "none"
 
         return render_template('map.html',
                                lat=self.current_location[0],
@@ -123,7 +97,6 @@ class Pogom(Flask):
                                lang=config['LOCALE'],
                                is_fixed=fixed_display,
                                search_control=search_display,
-                               step_control=step_display,
                                spawnpoints_only=spawnpoints_only_display
                                )
 
@@ -163,8 +136,7 @@ class Pogom(Flask):
             d['seen'] = Pokemon.get_seen(selected_duration)
 
         if request.args.get('appearances', 'false') == 'true':
-            d['appearances'] = Pokemon.get_appearances(request.args.get('pokemonid'),
-                                                       request.args.get('last', type=float), selected_duration)
+            d['appearances'] = Pokemon.get_appearances(request.args.get('pokemonid'), selected_duration)
 
         if request.args.get('appearancesDetails', 'false') == 'true':
             d['appearancesTimes'] = Pokemon.get_appearances_times_by_spawnpoint(request.args.get('pokemonid'),
