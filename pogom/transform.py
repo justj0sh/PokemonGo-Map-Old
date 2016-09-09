@@ -143,12 +143,14 @@ def generate_location_steps(initial_loc, step_count, step_distance):
 
 
 def get_speed_sleep(speed_limit, start_location, end_location, start_time, end_time):
-    time_elapsed = end_time - start_time
-
-    if speed_limit > 0 and time_elapsed > 0:
+    if speed_limit > 0:
         speed_limit = speed_limit * 1000.0 / 3600.0  # convert to mps to avoid divide by zero errors
         distance = geopy.distance.distance(start_location, end_location).meters
-        speed = distance / (time_elapsed / 1000.0)
+        time_elapsed = end_time - start_time
+        if time_elapsed > 0:
+            speed = distance / (time_elapsed / 1000.0)
+        else:
+            speed = 9999999.9  # time_elapsed == 0 means instant teleport - speed is "near" infinite...
     else:
         return 0
 
