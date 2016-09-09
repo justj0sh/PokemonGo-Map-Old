@@ -287,11 +287,11 @@ def get_args():
 
         # Decide which scanning mode to use
         if args.spawnpoint_scanning:
-            args.scheduler = 'SpawnScan'
+            config['SCHEDULER'] = 'SpawnScan'
         elif args.spawnpoints_only:
-            args.scheduler = 'HexSearchSpawnpoint'
+            config['SCHEDULER'] = 'HexSearchSpawnpoint'
         else:
-            args.scheduler = 'HexSearch'
+            config['SCHEDULER'] = 'HexSearch'
 
     return args
 

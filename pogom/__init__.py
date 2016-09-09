@@ -8,5 +8,5 @@ config = {
     'DATA_DIR': 'static/dist/data',
     'GMAPS_KEY': None,
     'STEP_LIMIT': 12,
-    'SPAWNPOINTS_ONLY': False
+    'SCHEDULER': ''
 }
