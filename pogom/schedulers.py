@@ -217,7 +217,7 @@ class HexSearch(BaseScheduler):
 class HexSearchSpawnpoint(HexSearch):
 
     def _any_spawnpoints_in_range(self, coords, spawnpoints):
-        return any(geopy.distance.distance(coords, x).meters <= 70 for x in spawnpoints)
+        return any(geopy.distance.great_circle(coords, x).meters <= 70 for x in spawnpoints)
 
     # Extend the generate_locations function to remove locations with no spawnpoints
     def _generate_locations(self):
@@ -256,7 +256,7 @@ class SpawnScan(BaseScheduler):
     # Generate locations is called when the locations list is cleared - the first time it scans or after a location change.
     def _generate_locations(self):
         # Attempt to load spawns from file
-        if self.args.spawnpoint_scanning != 'nofile':
+        if self.args.spawnpoint_scanning and self.args.spawnpoint_scanning != 'nofile':
             log.debug('Loading spawn points from json file @ %s', self.args.spawnpoint_scanning)
             try:
                 with open(self.args.spawnpoint_scanning) as file:

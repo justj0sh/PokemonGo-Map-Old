@@ -11,6 +11,7 @@ var $selectIconSize
 var $selectLuredPokestopsOnly
 var $selectSearchIconMarker
 var $selectLocationIconMarker
+var $selectSearchMode
 
 var language = document.documentElement.lang === '' ? 'en' : document.documentElement.lang
 var idToPokemon = {}
@@ -254,6 +255,16 @@ function updateSearchStatus () {
   })
 }
 
+var searchModeURI = 'search_mode'
+function searchModeSet (mode) {
+  $.post(searchModeURI + '?mode=' + encodeURIComponent(mode))
+}
+function updateSearchMode () {
+  $.getJSON(searchModeURI).then(function (data) {
+    $('#search-mode').val(data.mode).change()
+  })
+}
+
 function initSidebar () {
   $('#gyms-switch').prop('checked', Store.get('showGyms'))
   $('#pokemon-switch').prop('checked', Store.get('showPokemon'))
@@ -273,6 +284,9 @@ function initSidebar () {
 
   updateSearchStatus()
   setInterval(updateSearchStatus, 5000)
+
+  updateSearchMode()
+  setInterval(updateSearchMode, 5000)
 
   searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces()
@@ -1306,6 +1320,13 @@ $(function () {
     updateMap()
   })
 
+  $selectSearchMode = $('#search-mode')
+
+  $selectSearchMode.select2({
+    placeholder: 'Select Search Mode',
+    minimumResultsForSearch: Infinity
+  })
+
   $selectSearchIconMarker = $('#iconmarker-style')
   $selectLocationIconMarker = $('#locationmarker-style')
 
@@ -1534,6 +1555,10 @@ $(function () {
 
   $('#search-switch').change(function () {
     searchControl(this.checked ? 'on' : 'off')
+  })
+
+  $('#search-mode').change(function () {
+    searchModeSet(this.value)
   })
 
   $('#start-at-user-location-switch').change(function () {

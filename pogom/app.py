@@ -32,6 +32,8 @@ class Pogom(Flask):
         self.route("/mobile", methods=['GET'])(self.list_pokemon)
         self.route("/search_control", methods=['GET'])(self.get_search_control)
         self.route("/search_control", methods=['POST'])(self.post_search_control)
+        self.route("/search_mode", methods=['GET'])(self.get_search_mode)
+        self.route("/search_mode", methods=['POST'])(self.post_search_mode)
         self.route("/stats", methods=['GET'])(self.get_stats)
         self.route("/status", methods=['GET'])(self.get_status)
         self.route("/status", methods=['POST'])(self.post_status)
@@ -63,10 +65,28 @@ class Pogom(Flask):
             return jsonify({'message': 'invalid use of api'})
         return self.get_search_control()
 
+    def get_search_mode(self):
+        return jsonify({'mode': config['SCHEDULER']})
+
+    def post_search_mode(self):
+        args = get_args()
+        if args.fixed_location:
+            return 'Fixed location is enabled', 403
+        if request.args:
+            mode = request.args.get('mode', 'none')
+            if mode in ['HexSearch', 'HexSearchSpawnpoint', 'SpawnScan']:
+                config['SCHEDULER'] = mode
+            else:
+                return jsonify({'message': 'invalid mode set'})
+        else:
+            return jsonify({'message': 'invalid use of api'})
+        return self.get_search_mode()
+
     def fullmap(self):
         args = get_args()
         fixed_display = "none" if args.fixed_location else "inline"
         search_display = "inline" if args.search_control else "none"
+        search_mode_display = "inline" if args.search_mode_control and not args.fixed_location else "none"
 
         return render_template('map.html',
                                lat=self.current_location[0],
@@ -74,7 +94,8 @@ class Pogom(Flask):
                                gmaps_key=config['GMAPS_KEY'],
                                lang=config['LOCALE'],
                                is_fixed=fixed_display,
-                               search_control=search_display
+                               search_control=search_display,
+                               search_mode=search_mode_display
                                )
 
     def raw_data(self):
