@@ -70,8 +70,8 @@ class Pogom(Flask):
 
     def post_search_mode(self):
         args = get_args()
-        if args.fixed_location:
-            return 'Fixed location is enabled', 403
+        if args.fixed_location or not args.search_mode_control:
+            return 'Search mode control is disabled', 403
         if request.args:
             mode = request.args.get('mode', 'none')
             if mode in ['HexSearch', 'HexSearchSpawnpoint', 'SpawnScan']:
