@@ -254,7 +254,7 @@ class SpawnScan(BaseScheduler):
     # Generate locations is called when the locations list is cleared - the first time it scans or after a location change.
     def _generate_locations(self):
         # Attempt to load spawns from file
-        if self.args.spawnpoint_scanning != 'nofile':
+        if self.args.spawnpoint_scanning and self.args.spawnpoint_scanning != 'nofile':
             log.debug('Loading spawn points from json file @ %s', self.args.spawnpoint_scanning)
             try:
                 with open(self.args.spawnpoint_scanning) as file:
