@@ -107,7 +107,7 @@ def get_args():
     parser.add_argument('-nsc', '--no-search-control',
                         help='Disables search control',
                         action='store_false', dest='search_control', default=True)
-    parser.add_argument('-nsm','--no-search-mode',
+    parser.add_argument('-nsm', '--no-search-mode',
                         help='Disables search mode control',
                         action='store_false', dest='search_mode_control', default=True)
     parser.add_argument('-fl', '--fixed-location',
