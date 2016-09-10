@@ -110,7 +110,7 @@ def get_args():
     parser.add_argument('-nst','--no-step-control',
                         help='Disables step limit control',
                         action='store_false', dest='step_control', default=True)
-    parser.add_argument('-nsm','--no-search-mode',
+    parser.add_argument('-nsm', '--no-search-mode',
                         help='Disables search mode control',
                         action='store_false', dest='search_mode_control', default=True)
     parser.add_argument('-fl', '--fixed-location',
